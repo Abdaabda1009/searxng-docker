@@ -1,23 +1,27 @@
-version: "3.7"
-
 services:
   caddy:
     container_name: caddy
     image: docker.io/library/caddy:2-alpine
-    network_mode: host
     restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
-      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME:-http://localhost}
-      - SEARXNG_TLS=${LETSENCRYPT_EMAIL:-internal}
+      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME:-localhost}
+      - SEARXNG_TLS=internal
+    networks:
+      - searxng
     logging:
       driver: "json-file"
       options:
         max-size: "1m"
         max-file: "1"
+    depends_on:
+      - searxng
 
   redis:
     container_name: redis
@@ -41,18 +45,24 @@ services:
     networks:
       - searxng
     ports:
-      - "127.0.0.1:8080:8080"
+      - "4000:8080"  # SearXNG mapped to port 4000 as requested
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      - SEARXNG_BASE_URL=https://${SEARXNG_HOSTNAME:-localhost}/
+      - SEARXNG_BASE_URL=http://localhost/  # Use HTTP to avoid SSL issues
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
+      - SEARXNG_LIMITER=false
+      - SEARXNG_LIMITER__ENABLED=false
+    env_file:
+      - .env
     logging:
       driver: "json-file"
       options:
         max-size: "1m"
         max-file: "1"
+    depends_on:
+      - redis
 
 networks:
   searxng:
