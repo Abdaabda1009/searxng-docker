@@ -52,8 +52,6 @@ services:
       - SEARXNG_BASE_URL=http://localhost/  # Use HTTP to avoid SSL issues
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
-      - SEARXNG_LIMITER=false
-      - SEARXNG_LIMITER__ENABLED=false
     env_file:
       - .env
     logging:

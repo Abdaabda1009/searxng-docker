@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Configuration
-SEARXNG_BASE_URL = "https://localhost"
+SEARXNG_BASE_URL = "http://localhost:4000"
 VERIFY_SSL = False  # Set to True in production
 
 class SearXNGAPI:
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     print("  GET /api")
     
     print("\nExample usage:")
-    print("  curl 'http://localhost:8080/api/search?q=python&engines=google&max_results=5'")
+    print("  curl 'http://localhost:5001/api/search?q=python&engines=google&max_results=5'")
     
-    print("\nStarting server on http://localhost:8080")
-    app.run(host='0.0.0.0', port=8080, debug=True) 
+    print("\nStarting server on http://localhost:5001")
+    app.run(host='0.0.0.0', port=5001, debug=True) 

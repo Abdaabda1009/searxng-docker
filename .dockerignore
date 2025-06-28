@@ -1,0 +1,23 @@
+# .dockerignore
+.git
+.gitignore
+README.md
+.env.example
+*.log
+node_modules
+.DS_Store
+
+# caddy/Caddyfile
+{$SEARXNG_HOSTNAME:localhost} {
+    reverse_proxy searxng:8080
+    
+    # Enable compression
+    encode gzip
+    
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+    }
+}
