@@ -6,23 +6,223 @@ general:
     
 search:
   autocomplete: 'google'
-  max_results: 2
-  timeout: 1.0
+  max_results: 10
+  timeout: 5.0
   formats:
     - html
     - json
+    - md
+
+  search_history:
+    enabled: true
+    max_entries: 100
 
 server:
-  secret_key: 'a2fb23f1b02e6ee83875b09826990de0f6bd908b6638e8c10277d415f6ab852b' # Is overwritten by ${SEARXNG_SECRET}
+  secret_key: '93dd260c80f5c3239736fbd741c2d2e2428e914606c5c729472a8561a23529d8' # Is overwritten by ${SEARXNG_SECRET}
 
 engines:
-  - name: wolframalpha
-    disabled: false
-  - name: google_images
+  # Web Search Engines
+  - name: google
     engine: google
-    categories: [images]
-    shortcut: gimg
-  - name: bing_images
+    disabled: false
+    use_mobile_ui: false
+    weight: 1.0
+    timeout: 3.0
+    priority: 1  # Higher priority for Google
+
+  - name: bing
     engine: bing
+    disabled: false
+    weight: 0.8
+    timeout: 3.0
+    priority: 2
+
+  - name: duckduckgo
+    engine: duckduckgo
+    disabled: false
+    weight: 0.7
+    timeout: 3.0
+    priority: 3
+
+  - name: startpage
+    engine: startpage
+    disabled: false
+    weight: 0.6
+    timeout: 4.0
+    priority: 4
+
+  # Academic Search
+  - name: google scholar
+    engine: google_scholar
+    disabled: false
+    categories: [science]
+    weight: 1.0
+
+  - name: arxiv
+    engine: arxiv
+    disabled: false
+    categories: [science]
+    weight: 0.8
+
+  - name: crossref
+    engine: crossref
+    disabled: false
+    categories: [science]
+    weight: 0.7
+
+  # News Sources
+  - name: google news
+    engine: google_news
+    disabled: false
+    categories: [news]
+    weight: 1.0
+
+  - name: bing news
+    engine: bing_news
+    disabled: false
+    categories: [news]
+    weight: 0.8
+
+  # Image Search
+  - name: google images
+    engine: google_images
+    disabled: false
     categories: [images]
-    shortcut: bimg
+    weight: 1.0
+
+  - name: bing images
+    engine: bing_images
+    disabled: false
+    categories: [images]
+    weight: 0.8
+
+  - name: unsplash
+    engine: unsplash
+    disabled: false
+    categories: [images]
+    weight: 0.6
+
+  # Video Search
+  - name: youtube
+    engine: youtube_noapi
+    disabled: false
+    categories: [videos]
+    weight: 1.0
+
+  - name: vimeo
+    engine: vimeo
+    disabled: false
+    categories: [videos]
+    weight: 0.6
+
+  # Social Media
+  - name: reddit
+    engine: reddit
+    disabled: false
+    categories: [social media]
+    weight: 0.8
+
+  - name: twitter
+    engine: twitter
+    disabled: true  # Often requires API keys
+
+  # Maps
+  - name: openstreetmap
+    engine: openstreetmap
+    disabled: false
+    categories: [map]
+    weight: 1.0
+
+  # Specialized Engines
+  - name: wolframalpha
+    engine: wolframalpha_noapi
+    disabled: false
+    categories: [science]
+    weight: 0.9
+    timeout: 6.0
+
+  - name: wikipedia
+    engine: wikipedia
+    disabled: false
+    categories: [general]
+    weight: 0.8
+
+  - name: wikidata
+    engine: wikidata
+    disabled: false
+    categories: [general]
+    weight: 0.6
+
+  # Code repositories
+  - name: github
+    engine: github
+    disabled: false
+    categories: [it]
+    weight: 1.0
+
+  - name: gitlab
+    engine: gitlab
+    disabled: false
+    categories: [it]
+    weight: 0.7
+
+  # File search
+  - name: piratebay
+    engine: piratebay
+    disabled: true  # Disable for legal reasons
+
+  - name: nyaa
+    engine: nyaa
+    disabled: true  # Disable for legal reasons
+
+  # Music
+  - name: spotify
+    engine: spotify
+    disabled: true  # Requires API key
+
+  - name: soundcloud
+    engine: soundcloud
+    disabled: false
+    categories: [music]
+    weight: 0.7
+
+categories_as_tabs:
+  general:
+    - google
+    - bing
+    - duckduckgo
+    - startpage
+    - wikipedia
+  
+  images:
+    - google images
+    - bing images
+    - unsplash
+  
+  videos:
+    - youtube
+    - vimeo
+  
+  news:
+    - google news
+    - bing news
+  
+  map:
+    - openstreetmap
+  
+  music:
+    - soundcloud
+  
+  it:
+    - github
+    - gitlab
+  
+  science:
+    - google scholar
+    - arxiv
+    - crossref
+    - wolframalpha
+  
+  social media:
+    - reddit
+  

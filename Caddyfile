@@ -47,6 +47,10 @@
         path /static/*
     }
     
+    @api_wrapper {
+        path /api/*
+    }
+    
     header {
         # CSP (https://content-security-policy.com)
         Content-Security-Policy "upgrade-insecure-requests; default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; form-action 'self' https:; font-src 'self'; frame-ancestors 'self'; base-uri 'self'; connect-src 'self'; img-src * data:; frame-src https:;"
@@ -70,12 +74,23 @@
         Access-Control-Allow-Origin "*"
     }
     
+    header @api_wrapper {
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "*"
+        Access-Control-Allow-Origin "*"
+    }
+    
     route {
         # Cache policy
         header Cache-Control "max-age=0, no-store"
         header @search Cache-Control "max-age=5, private"
         header @imageproxy Cache-Control "max-age=604800, public"
         header @static Cache-Control "max-age=31536000, public, immutable"
+    }
+    
+    # API Wrapper - Route /api/* requests to the API container
+    reverse_proxy @api_wrapper searxng-api:5001 {
+        header_up Connection "close"
     }
     
     # SearXNG - Use container name instead of localhost

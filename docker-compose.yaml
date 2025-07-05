@@ -62,6 +62,40 @@ services:
     depends_on:
       - redis
 
+  api:
+    container_name: searxng-api
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    networks:
+      - searxng
+    ports:
+      - "5001:5001"  # API exposed on port 5001
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080  # Use internal container name
+      - API_PORT=5001
+      - VERIFY_SSL=false
+      - MAX_RESULTS_LIMIT=50
+      - REQUEST_TIMEOUT=30
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=3600
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    depends_on:
+      - searxng
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 networks:
   searxng:
 
