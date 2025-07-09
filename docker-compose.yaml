@@ -11,8 +11,8 @@ services:
       - caddy-data:/data:rw
       - caddy-config:/config:rw
     environment:
-      - SEARXNG_HOSTNAME=${SEARXNG_HOSTNAME:-localhost}
-      - SEARXNG_TLS=internal
+      - SEARXNG_HOSTNAME=search.nexalexica.com
+      - SEARXNG_TLS=Abdaabda1009@paceinv.com
     networks:
       - searxng
     logging:
@@ -49,7 +49,7 @@ services:
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      - SEARXNG_BASE_URL=http://localhost/  # Use HTTP to avoid SSL issues
+      - SEARXNG_BASE_URL=https://search.nexalexica.com/  # Use HTTP to avoid SSL issues
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
     env_file:
@@ -73,7 +73,7 @@ services:
     ports:
       - "5001:5001"  # API exposed on port 5001
     environment:
-      - SEARXNG_BASE_URL=http://searxng:8080  # Use internal container name
+      - SEARXNG_BASE_URL=https://search.nexalexica.com/  # Use internal container name
       - API_PORT=5001
       - VERIFY_SSL=false
       - MAX_RESULTS_LIMIT=50
@@ -90,7 +90,7 @@ services:
     depends_on:
       - searxng
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/api/health', timeout=5)"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://0.0.0.0:5001/api/health', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3

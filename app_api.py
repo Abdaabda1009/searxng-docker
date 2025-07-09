@@ -28,7 +28,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for production use
 
 # Configuration
-SEARXNG_BASE_URL = os.getenv('SEARXNG_BASE_URL', 'http://localhost:4000')
+SEARXNG_BASE_URL = os.getenv('SEARXNG_BASE_URL', 'https://search.nexalexica.com')
 API_PORT = int(os.getenv('API_PORT', '5001'))
 VERIFY_SSL = os.getenv('VERIFY_SSL', 'false').lower() == 'true'
 MAX_RESULTS_LIMIT = int(os.getenv('MAX_RESULTS_LIMIT', '50'))
