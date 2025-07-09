@@ -24,8 +24,8 @@
     }
 }
 
-{$SEARXNG_HOSTNAME} {
-    tls {$SEARXNG_TLS}
+search.nexalexica.com {
+    tls internal
     encode zstd gzip
     
     @api {
