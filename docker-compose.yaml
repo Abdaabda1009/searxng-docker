@@ -73,7 +73,7 @@ services:
     ports:
       - "5001:5001"  # API exposed on port 5001
     environment:
-      - SEARXNG_BASE_URL=https://search.nexalexica.com/  # Use internal container name
+      - SEARXNG_BASE_URL=https://search.nexalexica.com/  # Internal URL for health checks
       - API_PORT=5001
       - VERIFY_SSL=false
       - MAX_RESULTS_LIMIT=50
