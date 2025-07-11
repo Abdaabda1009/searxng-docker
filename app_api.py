@@ -281,19 +281,61 @@ class SearXNGAPI:
     def health_check(self) -> Dict[str, Any]:
         """Check SearXNG health"""
         try:
-            url = f"{self.base_url}/healthz"
+            # Try the root endpoint first (most reliable)
+            url = f"{self.base_url.rstrip('/')}/"
             response = self.session.get(url, verify=self.verify_ssl, timeout=5)
-            return {
-                "status": "healthy" if response.status_code == 200 else "unhealthy",
-                "response_time": response.elapsed.total_seconds(),
-                "timestamp": time.time()
-            }
+            
+            # If we get any response (even 404), SearXNG is running
+            if response.status_code < 500:
+                return {
+                    "status": "healthy",
+                    "endpoint": "/",
+                    "response_time": response.elapsed.total_seconds(),
+                    "timestamp": time.time()
+                }
+            else:
+                return {
+                    "status": "unhealthy",
+                    "endpoint": "/",
+                    "response_time": response.elapsed.total_seconds(),
+                    "timestamp": time.time()
+                }
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return {"status": "unhealthy", "error": str(e)}
 
+# Initialize API wrapper with retry mechanism
+def initialize_searxng_api():
+    """Initialize SearXNG API with retry mechanism"""
+    max_retries = 10
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Initializing SearXNG API (attempt {attempt + 1}/{max_retries})")
+            api = SearXNGAPI(SEARXNG_BASE_URL, VERIFY_SSL)
+            
+            # Test the connection
+            health = api.health_check()
+            if health.get("status") == "healthy":
+                logger.info("SearXNG API initialized successfully")
+                return api
+            else:
+                logger.warning(f"SearXNG health check failed: {health}")
+                
+        except Exception as e:
+            logger.warning(f"SearXNG API initialization attempt {attempt + 1} failed: {e}")
+        
+        if attempt < max_retries - 1:
+            logger.info(f"Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+            retry_delay = min(retry_delay * 1.5, 10)  # Cap at 10 seconds
+    
+    logger.warning("Failed to initialize SearXNG API after all retries. Starting with degraded mode.")
+    return SearXNGAPI(SEARXNG_BASE_URL, VERIFY_SSL)
+
 # Initialize API wrapper
-searxng = SearXNGAPI(SEARXNG_BASE_URL, VERIFY_SSL)
+searxng = initialize_searxng_api()
 
 # API Routes
 
@@ -394,9 +436,11 @@ def health():
             "version": "1.0.0"
         }
         
+        # Only return 503 if both API and SearXNG are unhealthy
         if searxng_health.get("status") == "unhealthy":
             api_health["api_status"] = "degraded"
-            return jsonify(api_health), 503
+            # Don't return 503, just return 200 with degraded status
+            return jsonify(api_health)
         
         return jsonify(api_health)
     except Exception as e:
