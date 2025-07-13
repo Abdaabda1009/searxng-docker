@@ -12,7 +12,7 @@ services:
       - caddy-config:/config:rw
     environment:
       - SEARXNG_HOSTNAME=search.nexalexica.com
-      - SEARXNG_TLS=Abdaabda1009@paceinv.com
+      - SEARXNG_TLS=internal
     networks:
       - searxng
     logging:
@@ -74,12 +74,12 @@ services:
       - "5001:5001"  # API exposed on port 5001
     environment:
       - SEARXNG_BASE_URL=http://searxng:8080/  # Use internal container URL for health checks
-      - API_PORT=5001
-      - VERIFY_SSL=false
-      - MAX_RESULTS_LIMIT=50
-      - REQUEST_TIMEOUT=30
-      - RATE_LIMIT_REQUESTS=100
-      - RATE_LIMIT_WINDOW=3600
+      - API_PORT=5001 # api port
+      - VERIFY_SSL=false # verify ssl
+      - MAX_RESULTS_LIMIT=20 # max results per search
+      - REQUEST_TIMEOUT=15 # request timeout
+      - RATE_LIMIT_REQUESTS=1000 # rate limit requests
+      - RATE_LIMIT_WINDOW=3600 # rate limit window
     env_file:
       - .env
     logging:

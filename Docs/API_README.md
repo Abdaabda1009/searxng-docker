@@ -1,64 +1,80 @@
-# SearXNG Simple API Wrapper
+# SearXNG Production API Wrapper
 
-This is a simple Flask API wrapper for your SearXNG instance that provides a clean interface for your external application.
+This is a production-ready Flask API wrapper for your SearXNG instance that provides a clean interface with predefined search modes and robust error handling.
 
-## 🎉 Status: FIXED!
+## 🎉 Status: PRODUCTION READY!
 
-The 403 Forbidden issue has been resolved by clearing the Redis data. Your SearXNG search API is now working perfectly!
+The API now includes advanced features like search modes, retry mechanisms, and improved health monitoring.
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Start the Services
 
 ```bash
-pip install -r requirements.txt
+docker-compose up -d --build
 ```
 
-### 2. Start the API Server
+The API will be available at `http://localhost:5001`
+
+### 2. Test the API
 
 ```bash
-python3 simple_api.py
-```
+# Health check
+curl "http://localhost:5001/api/health"
 
-The server will start on `http://localhost:5000`
+# Basic search
+curl "http://localhost:5001/api/search?q=python&mode=general"
 
-### 3. Test the API
-
-```bash
-python3 test_simple_api.py
+# Get available modes
+curl "http://localhost:5001/api/modes"
 ```
 
 ## API Endpoints
 
 ### Search
 ```
-GET /api/search?q=<query>&engines=<engine1,engine2>&max_results=<number>&categories=<images>
+GET/POST /api/search
 ```
 
 **Parameters:**
 - `q` (required): Search query
-- `engines` (optional): Comma-separated list of search engines (e.g., "google,bing,duckduckgo")
-- `max_results` (optional): Maximum number of results (default: 10)
-- `format` (optional): Response format (default: "json")
-- `categories` (optional): Comma-separated list of categories (e.g., "images" for image search)
+- `mode` (optional): Predefined search mode (see Search Modes below)
+- `engines` (optional): Comma-separated list of search engines
+- `max_results` (optional): Maximum number of results (default: 10, max: 50)
+- `language` (optional): Search language (default: "en")
+- `safesearch` (optional): Safe search level 0-2 (default: 1)
+- `time_range` (optional): Time range filter (day, week, month, year)
+- `pageno` (optional): Page number (default: 1)
 
-### Configuration
+### Search Modes
 ```
-GET /api/config
+GET /api/modes
 ```
-Returns the complete SearXNG configuration including available engines.
+Returns available search modes with descriptions and engine configurations.
 
 ### Health Check
 ```
 GET /api/health
 ```
-Returns the health status of the SearXNG instance.
+Returns the health status of both the API and SearXNG instance.
+
+### Configuration
+```
+GET /api/config
+```
+Returns the complete API and SearXNG configuration.
 
 ### Available Engines
 ```
 GET /api/engines
 ```
-Returns a list of available and enabled search engines.
+Returns available engines grouped by category.
+
+### Statistics
+```
+GET /api/stats
+```
+Returns API usage statistics and metrics.
 
 ### API Information
 ```
@@ -66,168 +82,216 @@ GET /api
 ```
 Returns information about the API and available endpoints.
 
+## Search Modes
+
+The API provides 10 predefined search modes optimized for different use cases:
+
+| Mode | Description | Engines | Max Results |
+|------|-------------|---------|-------------|
+| **general** | General web search using major search engines | Google, Bing, DuckDuckGo | 15 |
+| **academic** | Academic papers and scholarly content | Google Scholar, arXiv, PubMed, Semantic Scholar | 20 |
+| **news** | Latest news and current events | Google News, Bing News, Yahoo News, Reuters | 25 |
+| **images** | Image search across multiple platforms | Google Images, Bing Images, Flickr, Unsplash | 30 |
+| **videos** | Video content search | YouTube, Vimeo, Dailymotion | 20 |
+| **social** | Social media and community content | Twitter, Reddit, Mastodon | 25 |
+| **shopping** | Product search and shopping | Amazon, eBay, Shopping | 20 |
+| **tech** | Technical content and development resources | GitHub, Stack Overflow, Hacker News | 20 |
+| **local** | Local business and location search | Google Maps, OpenStreetMap, Yelp | 15 |
+| **fast** | Fast single-engine search for quick results | DuckDuckGo | 10 |
+
 ## Usage Examples
 
-### Regular Search
+### General Search
 ```bash
-curl "http://localhost:5000/api/search?q=python&engines=google&max_results=5"
+curl "http://localhost:5001/api/search?q=python&mode=general&max_results=15"
+```
+
+### Academic Search
+```bash
+curl "http://localhost:5001/api/search?q=machine+learning&mode=academic&max_results=20"
+```
+
+### News Search with Time Filter
+```bash
+curl "http://localhost:5001/api/search?q=latest+news&mode=news&time_range=day&max_results=25"
 ```
 
 ### Image Search
 ```bash
-curl "http://localhost:5000/api/search?q=cats&categories=images&engines=bing_images,google_images&max_results=10"
+curl "http://localhost:5001/api/search?q=sunset&mode=images&max_results=30"
 ```
 
-### Get Available Engines
+### POST Request with JSON
 ```bash
-curl "http://localhost:5000/api/engines"
+curl -X POST "http://localhost:5001/api/search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "python programming",
+    "mode": "tech",
+    "max_results": 15,
+    "language": "en",
+    "safesearch": 1
+  }'
+```
+
+### Get Available Modes
+```bash
+curl "http://localhost:5001/api/modes"
 ```
 
 ### Health Check
 ```bash
-curl "http://localhost:5000/api/health"
+curl "http://localhost:5001/api/health"
 ```
 
-## Integration with Your Application
+## Health Status
 
-### TypeScript/JavaScript Integration
+The health endpoint returns detailed status information:
 
-Update your `searxng.ts` file to point to the Flask API:
-
-```typescript
-export const searchSearxng = async (
-  query: string,
-  opts?: SearxngSearchOptions,
-): Promise<{ results: SearxngSearchResult[]; suggestions: string[] }> => {
-  // Point to your Flask API instead of direct SearXNG instance
-  const searxngURL = process.env.SEARXNG_API_URL || 'http://localhost:5000';
-  // ... rest of the function remains the same ...
+```json
+{
+  "api_status": "healthy",
+  "searxng_status": "healthy",
+  "timestamp": 1752190840.8051653,
+  "version": "1.0.0"
+}
 ```
 
-### Image Search Agent
+**Status Values:**
+- `healthy` - Service is fully operational
+- `degraded` - API is working but SearXNG has issues
+- `unhealthy` - Service is not responding
 
-Update your `imageSearchAgent.ts` to use proper engine identifiers:
+## Rate Limiting
 
-```typescript
-RunnableLambda.from(async (input: string) => {
-  input = input.replace(/.*?<\/think>/g, '');
-  const res = await searchSearxng(input, {
-    engines: ['bing_images', 'google_images'], // Use underscores instead of spaces
-    max_results: 10,
-    categories: ['images'] // Add category filter
-  });
-  // ... rest of the processing ...
-```
+The API includes configurable rate limiting:
+- **Default**: 100 requests per hour per IP
+- **Configurable**: Via environment variables
+- **Response**: 429 status code when limit exceeded
 
 ## Environment Variables
 
-Create a `.env` file in your application:
-
-```bash
+```env
 # API Configuration
-SEARXNG_API_URL=http://localhost:5000  # Points to Flask API
-SEARXNG_INSTANCE_URL=https://localhost  # Direct SearXNG access (if needed)
+API_PORT=5001
+VERIFY_SSL=false
+MAX_RESULTS_LIMIT=50
+REQUEST_TIMEOUT=30
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=3600
 
-# Optional: SSL verification
-SEARXNG_VERIFY_SSL=false  # Set to true in production
+# SearXNG Configuration
+SEARXNG_BASE_URL=http://searxng:8080/
 ```
 
 ## Features
 
-### ✅ Working Features
-- **Regular Search**: Full text search with multiple engines
-- **Image Search**: Specialized image search with validation
-- **Engine Selection**: Choose specific search engines
-- **Result Filtering**: Automatic filtering for image results
-- **Health Monitoring**: Check service status
-- **Configuration Access**: Get available engines and settings
+### ✅ Production Features
+- **Search Modes**: 10 predefined search modes for different use cases
+- **Retry Mechanism**: Automatic retry during startup and connection issues
+- **Health Monitoring**: Comprehensive health checks with status reporting
+- **Rate Limiting**: Configurable per-IP rate limiting
+- **Error Handling**: Graceful degradation and detailed error responses
+- **CORS Support**: Cross-origin request support
+- **Logging**: Structured logging for debugging and monitoring
+- **Security**: Non-root container execution and input validation
 
 ### 🔧 Configuration
-- **Port**: 5000 (configurable in `simple_api.py`)
-- **SSL**: Disabled for local development
+- **Port**: 5001 (configurable)
+- **SSL**: Configurable SSL verification
 - **CORS**: Enabled for cross-origin requests
-- **Rate Limiting**: Disabled (handled by SearXNG)
+- **Rate Limiting**: Configurable limits and windows
+- **Health Checks**: Built-in container health monitoring
 
 ### 🛡️ Security
-- **Input Validation**: All parameters are validated
-- **Error Handling**: Comprehensive error responses
-- **Logging**: Request and error logging
-- **SSL Verification**: Configurable SSL verification
+- **Input Validation**: All parameters are validated and sanitized
+- **Error Handling**: Comprehensive error responses without information leakage
+- **Logging**: Request and error logging for security monitoring
+- **SSL Verification**: Configurable SSL verification for production use
+- **Rate Limiting**: Protection against abuse and DoS attacks
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Port Already in Use**
+1. **API Shows as Unhealthy**
    ```bash
-   # Check what's using port 5000
-   lsof -i :5000
-   # Kill the process or change the port in simple_api.py
+   # Check container status
+   docker-compose ps
+   
+   # Check API logs
+   docker-compose logs api
+   
+   # Check health endpoint
+   curl "http://localhost:5001/api/health"
    ```
 
-2. **SearXNG Not Responding**
+2. **SearXNG Connection Issues**
    ```bash
-   # Check if SearXNG is running
-   curl -k https://localhost/healthz
-   # Restart the containers
-   docker compose restart
+   # Check SearXNG logs
+   docker-compose logs searxng
+   
+   # Check if SearXNG is responding
+   curl "http://localhost:4000/"
+   
+   # Restart services
+   docker-compose restart
    ```
 
-3. **Image Search Not Working**
+3. **Rate Limit Exceeded**
    ```bash
-   # Check available engines
-   curl "http://localhost:5000/api/engines"
-   # Ensure image engines are enabled in SearXNG
+   # Check current rate limit status
+   curl "http://localhost:5001/api/stats"
+   
+   # Wait for rate limit window to reset
    ```
 
 ### Debug Mode
 
-The API runs in debug mode by default. Check the console output for detailed logs and error messages.
+Check the container logs for detailed information:
+
+```bash
+# All services
+docker-compose logs -f
+
+# API only
+docker-compose logs -f api
+
+# SearXNG only
+docker-compose logs -f searxng
+```
 
 ## Development
 
-### Adding New Features
+### Adding New Search Modes
 
-1. **New Endpoints**: Add new routes to `simple_api.py`
-2. **Parameter Validation**: Use the existing validation patterns
-3. **Error Handling**: Follow the existing error response format
-4. **Testing**: Update `test_simple_api.py` with new tests
+1. **Edit `app_api.py`**: Add new mode to `SearchMode` enum and `SEARCH_MODES` dictionary
+2. **Configure Engines**: Specify engines and categories for the new mode
+3. **Test**: Verify the new mode works with different queries
+4. **Document**: Update this README with the new mode
 
 ### Testing
 
 ```bash
-# Run the test suite
-python3 test_simple_api.py
+# Test health endpoint
+curl "http://localhost:5001/api/health"
 
-# Manual testing
-curl "http://localhost:5000/api/search?q=test&engines=google"
+# Test search modes
+curl "http://localhost:5001/api/modes"
+
+# Test search functionality
+curl "http://localhost:5001/api/search?q=test&mode=general"
 ```
 
-## Production Deployment
+### Monitoring
 
-For production deployment:
-
-1. **Enable SSL**: Set `VERIFY_SSL = True` in `simple_api.py`
-2. **Use Production WSGI**: Use Gunicorn or uWSGI instead of Flask development server
-3. **Environment Variables**: Set proper environment variables
-4. **Logging**: Configure proper logging
-5. **Monitoring**: Add health checks and monitoring
-
-Example production command:
 ```bash
-gunicorn -w 4 -b 0.0.0.0:5000 simple_api:app
-```
+# View real-time logs
+docker-compose logs -f
 
-## Files
+# Check container health
+docker-compose ps
 
-- `simple_api.py` - Main API wrapper
-- `test_simple_api.py` - Test script
-- `requirements.txt` - Python dependencies
-- `API_README.md` - This file
-
-## Support
-
-If you encounter any issues:
-1. Check the SearXNG logs: `docker compose logs searxng`
-2. Check the API logs (printed to console)
-3. Verify your SearXNG instance is working: `curl https://localhost/search?q=test&format=json` 
+# Monitor API statistics
+curl "http://localhost:5001/api/stats"
+``` 
