@@ -12,7 +12,9 @@ services:
       - caddy-config:/config:rw
     environment:
       - SEARXNG_HOSTNAME=search.nexalexica.com
-      - SEARXNG_TLS=internal
+      - SEARXNG_TLS=auto
+    env_file:
+      - .env
     networks:
       - searxng
     logging:
