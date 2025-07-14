@@ -32,7 +32,7 @@ SEARXNG_BASE_URL = os.getenv('SEARXNG_BASE_URL', 'http://searxng:8080/')
 API_PORT = int(os.getenv('API_PORT', '5001'))
 VERIFY_SSL = os.getenv('VERIFY_SSL', 'false').lower() == 'true'
 MAX_RESULTS_LIMIT = int(os.getenv('MAX_RESULTS_LIMIT', '50'))
-REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '15'))
+REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))
 RATE_LIMIT_REQUESTS = int(os.getenv('RATE_LIMIT_REQUESTS', '1000'))
 RATE_LIMIT_WINDOW = int(os.getenv('RATE_LIMIT_WINDOW', '3600'))  # 1 hour
 
