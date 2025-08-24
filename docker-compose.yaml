@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   caddy:
     container_name: caddy
@@ -24,6 +26,7 @@ services:
         max-file: "1"
     depends_on:
       - searxng
+      - youtube-api
 
   redis:
     container_name: redis
@@ -47,11 +50,11 @@ services:
     networks:
       - searxng
     ports:
-      - "4000:8080"  # SearXNG mapped to port 4000 as requested
+      - "4000:8080" # SearXNG mapped to port 4000 as requested
     volumes:
       - ./searxng:/etc/searxng:rw
     environment:
-      - SEARXNG_BASE_URL=https://search.nexalexica.com/  # Use HTTP to avoid SSL issues
+      - SEARXNG_BASE_URL=https://search.nexalexica.com/ # Use HTTP to avoid SSL issues
       - UWSGI_WORKERS=${SEARXNG_UWSGI_WORKERS:-4}
       - UWSGI_THREADS=${SEARXNG_UWSGI_THREADS:-4}
     env_file:
@@ -73,9 +76,9 @@ services:
     networks:
       - searxng
     ports:
-      - "5001:5001"  # API exposed on port 5001
+      - "5001:5001" # API exposed on port 5001
     environment:
-      - SEARXNG_BASE_URL=http://searxng:8080/  # Use internal container URL for health checks
+      - SEARXNG_BASE_URL=http://searxng:8080/ # Use internal container URL for health checks
       - API_PORT=5001 # api port
       - VERIFY_SSL=false # verify ssl
       - MAX_RESULTS_LIMIT=50 # max results per search
@@ -93,6 +96,42 @@ services:
       - searxng
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  youtube-api:
+    container_name: youtube-api
+    build:
+      context: .
+      dockerfile: Dockerfile.youtube
+    restart: unless-stopped
+    networks:
+      - searxng
+    ports:
+      - "5002:5002" # YouTube API exposed on port 5002
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080/ # Use internal container URL
+      - YOUTUBE_API_URL=https://youtube.nexalexica.com/api/youtube/search
+      - API_PORT=5002 # Internal container port
+      - VERIFY_SSL=false # verify ssl
+      - MAX_RESULTS_LIMIT=500 # max results per search
+      - REQUEST_TIMEOUT=30 # request timeout
+      - RATE_LIMIT_REQUESTS=1000 # rate limit requests
+      - RATE_LIMIT_WINDOW=3600 # rate limit window
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY} # YouTube API key from .env
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    depends_on:
+      - searxng
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/api/youtube/health"]
       interval: 30s
       timeout: 10s
       retries: 5

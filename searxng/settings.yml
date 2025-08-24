@@ -21,7 +21,7 @@ server:
   secret_key: '93dd260c80f5c3239736fbd741c2d2e2428e914606c5c729472a8561a23529d8' # Is overwritten by ${SEARXNG_SECRET}
   bind_address: "0.0.0.0"  # Bind to all interfaces
   port: 8080
-  base_url: false  # Let SearXNG auto-detect
+  base_url: /  # Let SearXNG auto-detect
   image_proxy: false
   http_protocol_version: "1.0"
   method: "POST"
